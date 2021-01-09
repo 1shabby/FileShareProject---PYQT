@@ -1,4 +1,5 @@
 import os
+import sys
 
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
@@ -6,19 +7,18 @@ from pyftpdlib.servers import FTPServer
 
 from configparser import ConfigParser
 
-config_parser = ConfigParser()
+#config_parser = ConfigParser()
 authenication_parser = ConfigParser()
 
 # config.ini location:
-config_parser.read(
-    'D:\Program Files (x86)\PythonApps\FileSharingProject\config.ini')
+authenicationFilePath = os.path.join(sys.path[0], "Authenication.ini")
 
-authenication_parser.read(
-    'D:\Program Files (x86)\PythonApps\FileSharingProject\Authenication.ini')
 
-server_IP = config_parser.get('server', 'IP')
-server_Port = config_parser.get('server', 'Port')
-root_dir = config_parser.get('server', 'root_dir')
+authenication_parser.read(authenicationFilePath)
+
+server_IP = authenication_parser.get('settings', 'IP')
+server_Port = authenication_parser.get('settings', 'Port')
+root_dir = authenication_parser.get('settings', 'Server_Root')
 
 # generate an authorizer
 authorizer = DummyAuthorizer()
@@ -86,15 +86,16 @@ def main():
     handler.authorizer = authorizer
 
     # Define a customized banner (string returned when client connects)
-    handler.banner = "Welcome to FTPD server!"
+    handler.banner = "Welcome to the FTP server!"
 
     address = (server_IP, server_Port)
     server = FTPServer(address, handler)
     printInfo()
 
     # set a limit for connections
-    server.max_cons = int(config_parser.get("settings", "max_connections"))
-    server.max_cons_per_ip = int(config_parser.get(
+    server.max_cons = int(authenication_parser.get(
+        "settings", "max_connections"))
+    server.max_cons_per_ip = int(authenication_parser.get(
         "settings", "max_connections_per_ip"))
 
     # start ftp server
