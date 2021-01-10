@@ -156,12 +156,27 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
     # TODO: Implement the back end modification of the ini file and update the GUI.
     def RemoveConnection(self):
+        # Using the config parser find the connection that is selected in the GUI.
+        # Programmically remove the lines, then in a while loop change the number for each connection following it by -1
+        # Lastly reduce the Conncetion count number by 1.
 
+        # For the front end simply delete the selected row using:
+        # self.DisplayListWidget.clear()
+        #self.GetConnectionInfo(Parser, Path)
         return
+
     # TODO: Implement the back end modification of the ini file and update the GUI.
-
     def AddConnection(self):
+        # Annotate the Config.ini adding the following:
+        # "[Connection " + str(ConnectionCount +1) + "]"
+        # "ip = " + str(ServerIP)
+        # "port = " + str(ServerPort)
+        # "\n"
+        # Lastly increment the Connection Count by 1
 
+        # For the front end simply clear the list Widget, and then add all the connections
+        # Build the line here:
+        # self.DisplayListWidget.InsertItem(ConnectionCount, line)
         return
 
     def EditConnection(self):
