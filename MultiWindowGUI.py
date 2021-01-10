@@ -67,7 +67,7 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
 
 class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
-    switch_wndow = QtCore.pyqtSignal()
+    switch_window = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
 
@@ -91,6 +91,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         self.ServerIPLineEdit.textChanged.connect(self.InputFieldsChanged)
         self.SaveButton.clicked.connect(self.EditConnection)
         self.AutoLoadButton.toggled.connect(self.SetAutoLoad)
+        self.AddNewConnectionButton.clicked.connect(self.AddConnection)
 
         self.EditConfigController = Controller()
 
@@ -167,17 +168,30 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
     # TODO: Implement the back end modification of the ini file and update the GUI.
     def AddConnection(self):
-        # Annotate the Config.ini adding the following:
-        # "[Connection " + str(ConnectionCount +1) + "]"
-        # "ip = " + str(ServerIP)
-        # "port = " + str(ServerPort)
-        # "\n"
-        # Lastly increment the Connection Count by 1
+        ConfigFilePath = self.config_check()
+        Config_Parser = CONFIG_PARSER
+        connectionCount = Config_Parser.get("Connection Count", "count")
+        UpdatedConnectionCount = int(connectionCount) + 1
+        ServerIP = self.ServerIPLineEdit.text()
+        ServerPort = self.lineEdit_2.text()
+        SectionHeader = 'Connection ' + str(UpdatedConnectionCount)
 
-        # For the front end simply clear the list Widget, and then add all the connections
-        # Build the line here:
-        # self.DisplayListWidget.InsertItem(ConnectionCount, line)
-        return
+        Config_Parser.read(ConfigFilePath)
+        # Adds a new section to the ini file in accordance to our setup.
+        Config_Parser.add_section(SectionHeader)
+        Config_Parser.set(SectionHeader, 'ip', ServerIP)
+        Config_Parser.set(SectionHeader, 'port', ServerPort)
+        # Updates the count to ensure all the connections get shown everytime you navigate to this page.
+        Config_Parser.set('Connection Count', 'count',
+                          str(UpdatedConnectionCount))
+        with open(ConfigFilePath, 'w') as configfile:
+            Config_Parser.write(configfile)
+
+        line = SectionHeader + ": IP: " + str(ServerIP) + \
+            " Port: " + str(ServerPort)
+        self.DisplayListWidget.insertItem(UpdatedConnectionCount, line)
+        self.ServerIPLineEdit.setText("")
+        self.lineEdit_2.setText("")
 
     def EditConnection(self):
         ServerIP = self.ServerIPLineEdit.text()
