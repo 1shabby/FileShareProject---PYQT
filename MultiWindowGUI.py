@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from configparser import ConfigParser
 from ftplib import FTP
 
+
 import Connect
 import HomePage
 import EditConfig
@@ -82,8 +83,11 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
         self.GetConnectionInfo(Config_Parser, connectionCount)
         self.BackButton.clicked.connect(self.BackButtonPressed)
-        # For the list widget link the selected function to a method here!
-        # self.AutoLoadButton.clicked.connect(self.SetAutoLoad)
+        self.DisplayListWidget.itemSelectionChanged.connect(
+            self.viewItemChanged)
+        self.lineEdit_2.textChanged.connect(self.InputFieldsChanged)
+        self.ServerIPLineEdit.textChanged.connect(self.InputFieldsChanged)
+        self.SaveButton.clicked.connect(self.EditConnection)
         self.EditConfigController = Controller()
 
     def BackButtonPressed(self):
@@ -114,6 +118,21 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             self.DisplayListWidget.insertItem(count, line)
             count += 1
 
+    def viewItemChanged(self):
+        if self.DisplayListWidget.size() == 0:
+            self.RemoveButton.setEnabled(False)
+            self.IndexLabel.setText("Current Index: None Selected")
+        newIndex = self.DisplayListWidget.currentRow() + 1
+        self.IndexLabel.setText("Current Index: " + str(newIndex))
+        self.RemoveButton.setEnabled(True)
+
+    def InputFieldsChanged(self):
+        if self.ServerIPLineEdit.text() != "" and self.lineEdit_2.text() != "":
+            self.AddNewConnectionButton.setEnabled(True)
+        else:
+            self.SaveButton.setEnabled(False)
+            self.AddNewConnectionButton.setEnabled(False)
+
     def SetAutoLoad(self):
         AutoLoad = ""
         if self.AutoLoadButton.isChecked == True:
@@ -122,13 +141,43 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             AutoLoad = "False"
         print(AutoLoad)
 
-    def RemoveConnection(self, ConfigFilePath, ConfigParser):
+    def RemoveConnection(self):
 
         return
 
     def AddConnection(self):
 
         return
+
+    def EditConnection(self):
+        ServerIP = self.ServerIPLineEdit.text()
+        ServerPort = self.lineEdit_2.text()
+        IPValid = self.ip_check(ServerIP)
+        PortValid = self.port_check(ServerPort)
+        ConfigParser = self.Config_Parser
+        ConfigFilePath = self.ConfigFilePath
+
+        if IPValid == True and PortValid:
+            print("Valid IP and Port!")
+
+    def ip_check(self, IP_Text):
+        returnVal = False
+        try:
+            ipaddress.IPv4Address(IP_Text)
+            returnVal = True
+        except ValueError:
+            QMessageBox.about(self,
+                              "IP Error", "The IP address is not valid!")
+        return returnVal
+
+    def port_check(self, Port_Text):
+        returnVal = False
+        if int(Port_Text) > 0 and int(Port_Text) < 65536:
+            returnVal = True
+        else:
+            QMessageBox.about(self,
+                              "Port Error", "The Port doest not belong the legal domain! (1 - 65,535)")
+        return returnVal
 
 
 class Controller:
