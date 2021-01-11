@@ -135,8 +135,8 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
     def ClearButtonClicked(self):
         self.ServerPortLineEdit.setText("")
         self.ServerIPLineEdit.setText("")
-        self.lineEdit.setText("")
-        self.lineEdit_2.setText("")
+        self.UsernameLineEdit.setText("")
+        self.PasswordLineEdit.setText("")
 
     def Config_check(self):
         ConfigFilePath = os.path.join(sys.path[0], "config.ini")
@@ -155,8 +155,8 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         ServerIP = self.ServerIPLineEdit.text()
         ServerPort = self.ServerPortLineEdit.text()
 
-        Username = self.lineEdit.text()
-        Password = self.lineEdit_2.text()
+        Username = self.UsernameLineEdit.text()
+        Password = self.PasswordLineEdit.text()
 
         try:
             Server.connect(ServerIP, int(ServerPort))
