@@ -59,6 +59,9 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         self.setupUi(self)
         self.AddConnections()
         self.BackPushButton.clicked.connect(self.BackButtonPressed)
+        self.ClearButton.clicked.connect(self.ClearButtonClicked)
+        self.ConnectButton.clicked.connect(self.ConnectToServer)
+
         ConfigFilePath = self.Config_check()
         self.SavedConnectionComboBox.currentIndexChanged.connect(
             self.FillEntries)
@@ -108,6 +111,12 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
             self.ServerIPLineEdit.setText("")
             self.ServerPortLineEdit.setText("")
 
+    def ClearButtonClicked(self):
+        self.ServerPortLineEdit.setText("")
+        self.ServerIPLineEdit.setText("")
+        self.lineEdit.setText("")
+        self.lineEdit_2.setText("")
+
     def Config_check(self):
         ConfigFilePath = os.path.join(sys.path[0], "config.ini")
         isFile = os.path.isfile(ConfigFilePath)
@@ -119,6 +128,27 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
             exit()
 
         return ConfigFilePath
+
+    def ConnectToServer(self):
+        Server = FTP('')
+        ServerIP = self.ServerIPLineEdit.text()
+        ServerPort = self.ServerPortLineEdit.text()
+
+        Username = self.lineEdit.text()
+        Password = self.lineEdit_2.text()
+
+        try:
+            Server.connect(ServerIP, int(ServerPort))
+        except:
+            QMessageBox.about(
+                self, 'Connect Failed', 'IP and or Port does not have a server hosted on it.')
+        try:
+            Server.login(user=Username, passwd=Password)
+            print("Success!")
+        except:
+            QMessageBox.about(
+                self, 'Login Failed', 'Username or Password provided was not correct.'
+            )
 
 
 class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
@@ -174,7 +204,8 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             header = "Connection " + str(count)
             ConnectionIP = Config_Parser.get(header, "ip")
             ConnectionPort = Config_Parser.get(header, "port")
-            line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+            line = "Connection " + \
+                str(count) + ": IP: " + str(ConnectionIP) + \
                 " Port: " + str(ConnectionPort)
             self.DisplayListWidget.insertItem(count, line)
             count += 1
@@ -265,8 +296,8 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         with open(ConfigFilePath, 'w') as configfile:
             Config_Parser.write(configfile)
 
-        line = SectionHeader + ": IP: " + str(ServerIP) + \
-            " Port: " + str(ServerPort)
+        line = SectionHeader + ": IP: " + \
+            str(ServerIP) + " Port: " + str(ServerPort)
         self.DisplayListWidget.insertItem(UpdatedConnectionCount, line)
         self.ServerIPLineEdit.setText("")
         self.lineEdit_2.setText("")
@@ -295,7 +326,8 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                 header = "Connection " + str(count)
                 ConnectionIP = Config_Parser.get(header, "ip")
                 ConnectionPort = Config_Parser.get(header, "port")
-                line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+                line = "Connection " + \
+                    str(count) + ": IP: " + str(ConnectionIP) + \
                     " Port: " + str(ConnectionPort)
                 self.DisplayListWidget.insertItem(count, line)
                 count += 1
