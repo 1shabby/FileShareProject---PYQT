@@ -11,6 +11,7 @@ from ftplib import FTP
 import Connect
 import HomePage
 import EditConfig
+import Functions
 
 CONFIG_PARSER = ConfigParser()
 
@@ -50,6 +51,21 @@ class Home_Page(QtWidgets.QMainWindow, HomePage.Ui_StartWindow):
         exit()
 
 
+class Functions_Page(QtWidgets.QMainWindow, Functions.Ui_FunctionWIndow):
+
+    switch_window = QtCore.pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(Functions_Page, self).__init__(parent)
+        self.setupUi(self)
+        self.DisconnectButton.clicked.connect(self.DisconnectPressed)
+        self.FunctionsController = Controller()
+
+    def DisconnectPressed(self):
+        self.hide()
+        self.FunctionsController.ShowConnectPage()
+
+
 class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
 
     switch_window = QtCore.pyqtSignal()
@@ -66,6 +82,10 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         self.SavedConnectionComboBox.currentIndexChanged.connect(
             self.FillEntries)
         self.ConnectController = Controller()
+
+    def OpenFunctions(self):
+        self.hide()
+        self.ConnectController.ShowFunctionsPage()
 
     def BackButtonPressed(self):
         self.hide()
@@ -85,7 +105,8 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
                 header = "Connection " + str(count)
                 ConnectionIP = Config_Parser.get(header, "ip")
                 ConnectionPort = Config_Parser.get(header, "port")
-                line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+                line = "Connection " + \
+                    str(count) + ": IP: " + str(ConnectionIP) + \
                     " Port: " + str(ConnectionPort)
                 self.SavedConnectionComboBox.addItem(line)
                 count += 1
@@ -144,7 +165,8 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
                 self, 'Connect Failed', 'IP and or Port does not have a server hosted on it.')
         try:
             Server.login(user=Username, passwd=Password)
-            print("Success!")
+            self.OpenFunctions()
+
         except:
             QMessageBox.about(
                 self, 'Login Failed', 'Username or Password provided was not correct.'
@@ -367,6 +389,10 @@ class Controller:
     def ShowEditConfigPage(self):
         self.EditConfigPage = Edit_Config_Page()
         self.EditConfigPage.show()
+
+    def ShowFunctionsPage(self):
+        self.FunctionsPage = Functions_Page()
+        self.FunctionsPage.show()
 
 
 def main():
