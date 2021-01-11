@@ -57,12 +57,43 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
     def __init__(self, parent=None):
         super(Connect_Page, self).__init__(parent)
         self.setupUi(self)
+        self.AddConnections()
         self.BackPushButton.clicked.connect(self.BackButtonPressed)
+        ConfigFilePath = self.Config_check()
+
         self.ConnectController = Controller()
 
     def BackButtonPressed(self):
         self.hide()
         self.ConnectController.ShowHomePage()
+
+    def AddConnections(self):
+        Config_Parser = CONFIG_PARSER
+        ConfigFilePath = self.Config_check()
+        Config_Parser.read(ConfigFilePath)
+
+        ConnectionCount = Config_Parser.get('Connection Count', 'count')
+        count = 1
+        while count <= int(ConnectionCount):
+            header = "Connection " + str(count)
+            ConnectionIP = Config_Parser.get(header, "ip")
+            ConnectionPort = Config_Parser.get(header, "port")
+            line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+                " Port: " + str(ConnectionPort)
+            self.SavedConnectionComboBox.addItem(line)
+            count += 1
+
+    def Config_check(self):
+        ConfigFilePath = os.path.join(sys.path[0], "config.ini")
+        isFile = os.path.isfile(ConfigFilePath)
+        if isFile == False:
+            QMessageBox.about(
+                self, "Critical Error!", "Config.ini file not found in the same dir of this application!")
+            QMessageBox.setIcon(QMessageBox.Critical)
+            QMessageBox.show()
+            exit()
+
+        return ConfigFilePath
 
 
 class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
