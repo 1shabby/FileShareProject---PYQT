@@ -144,15 +144,21 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
         Config_Parser.read(ConfigFilePath)
-
+        Count = 1
         ConnectionCount = Config_Parser.get("Connection Count", "count")
-        isGap = Config_Parser.get("Connection Gaps", "is_gap")
-        firstgap = -1
-
-        if isGap == True:
-            firstgap = Config_Parser.get("Connection Gaps", "first_gap")
-
-        return firstgap
+        is_gap = Config_Parser.get('Connection Gaps', 'is_gap')
+        while Count <= ConnectionCount:
+            CurrentSection = "Connection " + str(Count)
+            if Config_Parser.has_section(CurrentSection) == False:
+                is_gap = True
+                Config_Parser.set('Connection Gaps', 'is_gap', is_gap)
+                # If there isn't currently a gap in the connections set gap 1 = to the first missing one.
+                if int(Config_Parser.get('Connection Gaps', 'gap 1')) == 0:
+                    Config_Parser.set('Connection Gaps', 'gap 1', Count)
+                # If the found gap is a smaller value than the first one in the file,
+                # then write the current gap 1 into a temp value and overwrite with  the current smallest gap
+                elif Count < int(Config_Parser.get('Connection Gaps', 'gap 1')):
+                    tempGap = Config_Parser.get('Connection Gaps', 'gap 1')
 
     def SetAutoLoad(self):
         ConfigFilePath = self.config_check()
@@ -181,7 +187,6 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
        # the ini and updating the file to have the first gap be the next in line.
        # The change was added to improve the computational time to be much more efficient.
 
-        # TODO: Implement the back end modification of the ini file and update the GUI.
         return
 
     def AddConnection(self):
