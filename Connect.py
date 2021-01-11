@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'C:\Users\1shab\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.8_qbz5n2kfra8p0\LocalCache\local-packages\Python38\site-packages\QtDesigner\Connect.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -59,14 +61,18 @@ class Ui_ConnectWindow(object):
         self.lineEdit_2.setGeometry(QtCore.QRect(510, 110, 191, 31))
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.ConnectButton = QtWidgets.QPushButton(self.centralwidget)
-        self.ConnectButton.setGeometry(QtCore.QRect(200, 180, 121, 41))
+        self.ConnectButton.setGeometry(QtCore.QRect(200, 200, 121, 41))
         self.ConnectButton.setObjectName("ConnectButton")
         self.ClearButton = QtWidgets.QPushButton(self.centralwidget)
-        self.ClearButton.setGeometry(QtCore.QRect(520, 180, 121, 41))
+        self.ClearButton.setGeometry(QtCore.QRect(520, 200, 121, 41))
         self.ClearButton.setObjectName("ClearButton")
         self.BackPushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.BackPushButton.setGeometry(QtCore.QRect(360, 180, 121, 41))
+        self.BackPushButton.setGeometry(QtCore.QRect(360, 200, 121, 41))
         self.BackPushButton.setObjectName("BackPushButton")
+        self.SavedConnectionComboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.SavedConnectionComboBox.setGeometry(QtCore.QRect(290, 160, 271, 22))
+        self.SavedConnectionComboBox.setCurrentText("")
+        self.SavedConnectionComboBox.setObjectName("SavedConnectionComboBox")
         ConnectWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(ConnectWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
@@ -81,13 +87,10 @@ class Ui_ConnectWindow(object):
 
     def retranslateUi(self, ConnectWindow):
         _translate = QtCore.QCoreApplication.translate
-        ConnectWindow.setWindowTitle(_translate(
-            "ConnectWindow", "Connect to Server"))
+        ConnectWindow.setWindowTitle(_translate("ConnectWindow", "Connect to Server"))
         self.ServerIPLabel.setText(_translate("ConnectWindow", "Server IP:"))
-        self.ServerPortLabel.setText(
-            _translate("ConnectWindow", "Server Port:"))
-        self.HeaderLabel.setText(_translate(
-            "ConnectWindow", "Connect to Server"))
+        self.ServerPortLabel.setText(_translate("ConnectWindow", "Server Port:"))
+        self.HeaderLabel.setText(_translate("ConnectWindow", "Connect to Server"))
         self.label.setText(_translate("ConnectWindow", "Username:"))
         self.label_2.setText(_translate("ConnectWindow", "Password:"))
         self.ConnectButton.setText(_translate("ConnectWindow", "Connect"))
