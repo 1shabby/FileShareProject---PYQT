@@ -140,6 +140,20 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             self.SaveButton.setEnabled(False)
             self.AddNewConnectionButton.setEnabled(False)
 
+    def FindConnectionGap(self):
+        ConfigFilePath = self.config_check()
+        Config_Parser = CONFIG_PARSER
+        Config_Parser.read(ConfigFilePath)
+
+        ConnectionCount = Config_Parser.get("Connection Count", "count")
+        isGap = Config_Parser.get("Connection Gaps", "is_gap")
+        firstgap = -1
+
+        if isGap == True:
+            firstgap = Config_Parser.get("Connection Gaps", "first_gap")
+
+        return firstgap
+
     def SetAutoLoad(self):
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
@@ -157,16 +171,19 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
     # TODO: Implement the back end modification of the ini file and update the GUI.
     def RemoveConnection(self):
-        # Using the config parser find the connection that is selected in the GUI.
-        # Programmically remove the lines, then in a while loop change the number for each connection following it by -1
-        # Lastly reduce the Conncetion count number by 1.
+       # Implementation will go as follows:
+       # We will remove the selected item from the config file and the GUI with:
+       # Config_Parser.remove_section("Connection " + Str(SelectedItem))
+       # Then if the removed item was not the last connection in the list then check
+       # the config file to see if it is the first gap. If that is the case, then
+       # update the first gap to the most recently removed item and dont reduce the total count.
+       # The add function will be updated to prioritize adding at the first gap by pulling it from
+       # the ini and updating the file to have the first gap be the next in line.
+       # The change was added to improve the computational time to be much more efficient.
 
-        # For the front end simply delete the selected row using:
-        # self.DisplayListWidget.clear()
-        #self.GetConnectionInfo(Parser, Path)
+        # TODO: Implement the back end modification of the ini file and update the GUI.
         return
 
-    # TODO: Implement the back end modification of the ini file and update the GUI.
     def AddConnection(self):
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
@@ -211,8 +228,16 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                               'port', str(ServerPort))
             with open(ConfigFilePath, 'w') as configfile:
                 Config_Parser.write(configfile)
-            # self.DisplayListWidget.clear()
-            #self.GetConnectionInfo(ConfigParser, ConnectionCount)
+            self.DisplayListWidget.clear()
+            count = 1
+            while count <= int(ConnectionCount):
+                header = "Connection " + str(count)
+                ConnectionIP = Config_Parser.get(header, "ip")
+                ConnectionPort = Config_Parser.get(header, "port")
+                line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+                    " Port: " + str(ConnectionPort)
+                self.DisplayListWidget.insertItem(count, line)
+                count += 1
 
     def ip_check(self, IP_Text):
         returnVal = False
