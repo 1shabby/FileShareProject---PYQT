@@ -60,7 +60,8 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         self.AddConnections()
         self.BackPushButton.clicked.connect(self.BackButtonPressed)
         ConfigFilePath = self.Config_check()
-
+        self.SavedConnectionComboBox.currentIndexChanged.connect(
+            self.FillEntries)
         self.ConnectController = Controller()
 
     def BackButtonPressed(self):
@@ -71,17 +72,41 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         Config_Parser = CONFIG_PARSER
         ConfigFilePath = self.Config_check()
         Config_Parser.read(ConfigFilePath)
+        AutoLoad = Config_Parser.get('settings', 'auto_connect')
 
         ConnectionCount = Config_Parser.get('Connection Count', 'count')
         count = 1
-        while count <= int(ConnectionCount):
-            header = "Connection " + str(count)
-            ConnectionIP = Config_Parser.get(header, "ip")
-            ConnectionPort = Config_Parser.get(header, "port")
-            line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
-                " Port: " + str(ConnectionPort)
-            self.SavedConnectionComboBox.addItem(line)
-            count += 1
+        if AutoLoad == "True":
+            self.SavedConnectionComboBox.addItem("Select a Connection...")
+            while count <= int(ConnectionCount):
+                header = "Connection " + str(count)
+                ConnectionIP = Config_Parser.get(header, "ip")
+                ConnectionPort = Config_Parser.get(header, "port")
+                line = "Connection " + str(count) + ": IP: " + str(ConnectionIP) + \
+                    " Port: " + str(ConnectionPort)
+                self.SavedConnectionComboBox.addItem(line)
+                count += 1
+
+        if AutoLoad == "False":
+            self.SavedConnectionComboBox.addItem(
+                "Enable Auto Load in Config Modify.")
+            self.SavedConnectionComboBox.setEnabled(False)
+
+    def FillEntries(self):
+        Config_Parser = CONFIG_PARSER
+        ConfigFilePath = self.Config_check()
+        Config_Parser.read(ConfigFilePath)
+
+        index = self.SavedConnectionComboBox.currentIndex()
+        if index > 0:
+            IPAddress = Config_Parser.get('Connection ' + str(index), 'ip')
+            PortAddress = Config_Parser.get('Connection ' + str(index), 'port')
+
+            self.ServerIPLineEdit.setText(IPAddress)
+            self.ServerPortLineEdit.setText(PortAddress)
+        elif index == 0:
+            self.ServerIPLineEdit.setText("")
+            self.ServerPortLineEdit.setText("")
 
     def Config_check(self):
         ConfigFilePath = os.path.join(sys.path[0], "config.ini")
