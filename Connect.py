@@ -59,6 +59,7 @@ class Ui_ConnectWindow(object):
         self.label_2.setObjectName("label_2")
         self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit_2.setGeometry(QtCore.QRect(510, 110, 191, 31))
+        self.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password)
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.ConnectButton = QtWidgets.QPushButton(self.centralwidget)
         self.ConnectButton.setGeometry(QtCore.QRect(200, 200, 121, 41))
