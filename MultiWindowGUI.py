@@ -200,7 +200,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         self.SaveButton.clicked.connect(self.EditConnection)
         self.AutoLoadButton.toggled.connect(self.SetAutoLoad)
         self.AddNewConnectionButton.clicked.connect(self.AddConnection)
-
+        self.RemoveButton.clicked.connect(self.RemoveConnection)
         self.EditConfigController = Controller()
 
     def BackButtonPressed(self):
@@ -249,26 +249,6 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             self.SaveButton.setEnabled(False)
             self.AddNewConnectionButton.setEnabled(False)
 
-    def FindConnectionGap(self):
-        ConfigFilePath = self.config_check()
-        Config_Parser = CONFIG_PARSER
-        Config_Parser.read(ConfigFilePath)
-        Count = 1
-        ConnectionCount = Config_Parser.get("Connection Count", "count")
-        is_gap = Config_Parser.get('Connection Gaps', 'is_gap')
-        while Count <= ConnectionCount:
-            CurrentSection = "Connection " + str(Count)
-            if Config_Parser.has_section(CurrentSection) == False:
-                is_gap = True
-                Config_Parser.set('Connection Gaps', 'is_gap', is_gap)
-                # If there isn't currently a gap in the connections set gap 1 = to the first missing one.
-                if int(Config_Parser.get('Connection Gaps', 'gap 1')) == 0:
-                    Config_Parser.set('Connection Gaps', 'gap 1', Count)
-                # If the found gap is a smaller value than the first one in the file,
-                # then write the current gap 1 into a temp value and overwrite with  the current smallest gap
-                elif Count < int(Config_Parser.get('Connection Gaps', 'gap 1')):
-                    tempGap = Config_Parser.get('Connection Gaps', 'gap 1')
-
     def SetAutoLoad(self):
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
@@ -284,19 +264,85 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         with open(ConfigFilePath, 'w') as configfile:
             Config_Parser.write(configfile)
 
-    # TODO: Implement the back end modification of the ini file and update the GUI.
     def RemoveConnection(self):
-       # Implementation will go as follows:
-       # We will remove the selected item from the config file and the GUI with:
-       # Config_Parser.remove_section("Connection " + Str(SelectedItem))
-       # Then if the removed item was not the last connection in the list then check
-       # the config file to see if it is the first gap. If that is the case, then
-       # update the first gap to the most recently removed item and dont reduce the total count.
-       # The add function will be updated to prioritize adding at the first gap by pulling it from
-       # the ini and updating the file to have the first gap be the next in line.
-       # The change was added to improve the computational time to be much more efficient.
+        ConfigFilePath = self.config_check()
+        Config_Parser = CONFIG_PARSER
 
-        return
+        Config_Parser.read(ConfigFilePath)
+        ConnectionCount = Config_Parser.get("Connection Count", "count")
+        NewConnectionCount = int(ConnectionCount) - 1
+        removeIndex = self.DisplayListWidget.currentRow() + 1
+        print(removeIndex)
+        print(ConnectionCount)
+        # Checking to see if we want to remove the last item. If so remove it from the ini file and GUI and done.
+        if removeIndex == int(ConnectionCount):
+            print('first if')
+            removeSection = 'Connection ' + str(removeIndex)
+            print(removeSection)
+            Config_Parser.remove_section(removeSection)
+            self.DisplayListWidget.takeItem(
+                self.DisplayListWidget.currentRow())
+
+            Config_Parser.set('Connection Count', 'Count',
+                              str(NewConnectionCount))
+            with open(ConfigFilePath, 'w') as configfile:
+                Config_Parser.write(configfile)
+        # Checks to see if the index we want to remove is one that is not the last position.
+        elif removeIndex < int(ConnectionCount):
+            print('first elif')
+            nextIndex = removeIndex + 1
+            currentIndex = removeIndex
+            # While the current index is not equal to the last connection do:
+            while currentIndex < int(ConnectionCount):
+                # Update the target section headers.
+                CurrentSection = 'Connection ' + str(currentIndex)
+                NextSection = 'Connection ' + str(nextIndex)
+                # If the current selected section is not the last section do:
+                if nextIndex < int(ConnectionCount):
+                    print("second if")
+                    print("next Index = " + str(nextIndex))
+                    # Get the IP of the connection below the current connection in the file.
+                    NextIP = Config_Parser.get(NextSection, 'ip')
+                    print("next ip = " + NextIP)
+                    # Get the port of the connection below the current COnnection in the file.
+                    NextPort = Config_Parser.get(NextSection, 'port')
+                    print("next port = " + NextPort)
+
+                    # Set the current sections ip and port equal to the next sections ip and port
+                    Config_Parser.set(CurrentSection, 'ip', NextIP)
+                    Config_Parser.set(CurrentSection, 'port', NextPort)
+                    # Write the changes to the file.
+                    with open(ConfigFilePath, 'w') as configfile:
+                        Config_Parser.write(configfile)
+                # If the next index is equal to the last connection do:
+                elif nextIndex == int(ConnectionCount):
+                    NextIP = Config_Parser.get(NextSection, 'ip')
+                    NextPort = Config_Parser.get(NextSection, 'port')
+                    Config_Parser.set(CurrentSection, 'ip', NextIP)
+                    Config_Parser.set(CurrentSection, 'port', NextPort)
+
+                    Config_Parser.remove_section('Connection' + str(nextIndex))
+
+                    Config_Parser.set('Connection Count',
+                                      'Count', str(NewConnectionCount))
+
+                    with open(ConfigFilePath, 'w') as configfile:
+                        Config_Parser.write(configfile)
+
+                currentIndex = currentIndex + 1
+                nextIndex = nextIndex + 1
+
+            """ self.DisplayListWidget.clear()
+            count = 1
+            while count <= int(ConnectionCount):
+                header = "Connection " + str(count)
+                ConnectionIP = Config_Parser.get(header, "ip")
+                ConnectionPort = Config_Parser.get(header, "port")
+                line = "Connection " + \
+                    str(count) + ": IP: " + str(ConnectionIP) + \
+                    " Port: " + str(ConnectionPort)
+                self.DisplayListWidget.insertItem(count, line)
+                count += 1 """
 
     def AddConnection(self):
         ConfigFilePath = self.config_check()
@@ -335,7 +381,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         ConfigFilePath = self.config_check()
         ConnectionCount = Config_Parser.get("Connection Count", "count")
 
-        if IPValid == True and PortValid:
+        if IPValid == True and PortValid == True:
             Config_Parser.set(
                 'Connection ' + str(SelectedRow), 'ip', str(ServerIP))
             Config_Parser.set('Connection ' + str(SelectedRow),
