@@ -272,13 +272,9 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         ConnectionCount = Config_Parser.get("Connection Count", "count")
         NewConnectionCount = int(ConnectionCount) - 1
         removeIndex = self.DisplayListWidget.currentRow() + 1
-        print(removeIndex)
-        print(ConnectionCount)
         # Checking to see if we want to remove the last item. If so remove it from the ini file and GUI and done.
         if removeIndex == int(ConnectionCount):
-            print('first if')
             removeSection = 'Connection ' + str(removeIndex)
-            print(removeSection)
             Config_Parser.remove_section(removeSection)
             self.DisplayListWidget.takeItem(
                 self.DisplayListWidget.currentRow())
@@ -289,7 +285,6 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                 Config_Parser.write(configfile)
         # Checks to see if the index we want to remove is one that is not the last position.
         elif removeIndex < int(ConnectionCount):
-            print('first elif')
             nextIndex = removeIndex + 1
             currentIndex = removeIndex
             # While the current index is not equal to the last connection do:
@@ -299,14 +294,10 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                 NextSection = 'Connection ' + str(nextIndex)
                 # If the current selected section is not the last section do:
                 if nextIndex < int(ConnectionCount):
-                    print("second if")
-                    print("next Index = " + str(nextIndex))
                     # Get the IP of the connection below the current connection in the file.
                     NextIP = Config_Parser.get(NextSection, 'ip')
-                    print("next ip = " + NextIP)
                     # Get the port of the connection below the current COnnection in the file.
                     NextPort = Config_Parser.get(NextSection, 'port')
-                    print("next port = " + NextPort)
 
                     # Set the current sections ip and port equal to the next sections ip and port
                     Config_Parser.set(CurrentSection, 'ip', NextIP)
@@ -331,18 +322,6 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
                 currentIndex = currentIndex + 1
                 nextIndex = nextIndex + 1
-
-            """ self.DisplayListWidget.clear()
-            count = 1
-            while count <= int(ConnectionCount):
-                header = "Connection " + str(count)
-                ConnectionIP = Config_Parser.get(header, "ip")
-                ConnectionPort = Config_Parser.get(header, "port")
-                line = "Connection " + \
-                    str(count) + ": IP: " + str(ConnectionIP) + \
-                    " Port: " + str(ConnectionPort)
-                self.DisplayListWidget.insertItem(count, line)
-                count += 1 """
 
     def AddConnection(self):
         ConfigFilePath = self.config_check()
