@@ -7,11 +7,8 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from configparser import ConfigParser
 from ftplib import FTP
 
+from Windows import Connect, HomePage, EditConfig, Functions
 
-import Connect
-import HomePage
-import EditConfig
-import Functions
 
 CONFIG_PARSER = ConfigParser()
 
@@ -38,7 +35,9 @@ class Home_Page(QtWidgets.QMainWindow, HomePage.Ui_StartWindow):
         self.homeController.ShowEditConfigPage()
 
     def config_check(self):
-        ConfigFilePath = os.path.join(sys.path[0], "config.ini")
+        ConfigFilePath = os.path.join(sys.path[0] + "\ini files", "config.ini")
+        ConnectionsFilePath = os.path.join(
+            sys.path[0] + "\ini files", 'Connections.ini')
         isFile = os.path.isfile(ConfigFilePath)
         if isFile == False:
             QMessageBox.about(
@@ -139,7 +138,7 @@ class Connect_Page(QtWidgets.QMainWindow, Connect.Ui_ConnectWindow):
         self.PasswordLineEdit.setText("")
 
     def Config_check(self):
-        ConfigFilePath = os.path.join(sys.path[0], "config.ini")
+        ConfigFilePath = os.path.join(sys.path[0] + "\ini files", "config.ini")
         isFile = os.path.isfile(ConfigFilePath)
         if isFile == False:
             QMessageBox.about(
@@ -178,13 +177,17 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
     switch_window = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
-
         super(Edit_Config_Page, self).__init__(parent)
         self.setupUi(self)
+
         Config_Parser.read(ConfigFilePath)
+        autoLoad = Config_Parser.get("settings", "auto_connect")
+
+        ConnectionsFilePath = ConnectionsFilePath = os.path.join(
+            sys.path[0] + "\ini files", 'Connections.ini')
+        Config_Parser.read(ConnectionsFilePath)
         connectionCount = Config_Parser.get("Connection Count", "count")
         autoLoad = Config_Parser.get("settings", "auto_connect")
 
@@ -209,7 +212,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
     # Checks when the Window is rendered to see if the Config.ini file is present, else give a critical error and close.
     def config_check(self):
-        ConfigFilePath = os.path.join(sys.path[0], "config.ini")
+        ConfigFilePath = os.path.join(sys.path[0] + "\ini files", "config.ini")
         isFile = os.path.isfile(ConfigFilePath)
         if isFile == False:
             QMessageBox.about(
@@ -251,6 +254,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
     def SetAutoLoad(self):
         ConfigFilePath = self.config_check()
+        ConnectionsFilePath = self.ConnectionsFilePath
         Config_Parser = CONFIG_PARSER
 
         AutoLoad = ""
@@ -261,16 +265,17 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             AutoLoad = "False"
 
         Config_Parser.set('settings', 'auto_connect', AutoLoad)
-        with open(ConfigFilePath, 'w') as configfile:
-            Config_Parser.write(configfile)
+        with open(ConnectionsFilePath, 'w') as connectionsfile:
+            Config_Parser.write(connectionsfile)
 
     def RemoveConnection(self):
         ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
 
-        Config_Parser.read(ConfigFilePath)
+        Config_Parser.read(ConnectionsFilePath)
         ConnectionCount = Config_Parser.get("Connection Count", "count")
         NewConnectionCount = int(ConnectionCount) - 1
+        Config_Parser.read(ConnectionsFilePath)
         removeIndex = self.DisplayListWidget.currentRow() + 1
         # Checking to see if we want to remove the last item. If so remove it from the ini file and GUI and done.
         if removeIndex == int(ConnectionCount):
@@ -281,8 +286,8 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
 
             Config_Parser.set('Connection Count', 'Count',
                               str(NewConnectionCount))
-            with open(ConfigFilePath, 'w') as configfile:
-                Config_Parser.write(configfile)
+            with open(ConnectionsFilePath, 'w') as connectionsfile:
+                Config_Parser.write(connectionsfile)
         # Checks to see if the index we want to remove is one that is not the last position.
         elif removeIndex < int(ConnectionCount):
             nextIndex = removeIndex + 1
