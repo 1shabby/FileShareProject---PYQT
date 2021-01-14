@@ -272,10 +272,22 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         Connections += -1
         return Connections
 
+    def ConnectionsFileCheck(self):
+        ConnectionsFilePath = os.path.join(
+            sys.path[0] + "\ini files", "Connections.ini")
+        isFile = os.path.isfile(ConnectionsFilePath)
+        if isFile == False:
+            QMessageBox.about(
+                self, "Critical Error!", "Connections.ini file not found in the same dir of this application!")
+            QMessageBox.setIcon(QMessageBox.Critical)
+            QMessageBox.show()
+            exit()
+
+        return ConnectionsFilePath
+
     def RemoveConnection(self):
         Config_Parser = CONFIG_PARSER
-        ConnectionsFilePath = os.path.join(
-            sys.path[0] + "\ini files", 'Connections.ini')
+        ConnectionsFilePath = self.ConnectionsFileCheck()
 
         Config_Parser.read(ConnectionsFilePath)
         ConnectionCount = Config_Parser.get("Connection Count", "count")
@@ -324,7 +336,6 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                         'Connection ' + str(nextIndex))
                     Config_Parser.set('Connection Count',
                                       'count', str(NewConnectionCount))
-                    print("Connection " + str(nextIndex) + " Removed")
                     with open(ConnectionsFilePath, 'w') as connectionsfile:
                         Config_Parser.write(connectionsfile)
                     QMessageBox.about(self,
@@ -332,16 +343,30 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                 currentIndex = currentIndex + 1
                 nextIndex = nextIndex + 1
 
+        self.UpdateListWidget(Config_Parser, NewConnectionCount)
+
+    def UpdateListWidget(self, Config_Parser, ConnectionCount):
+        self.DisplayListWidget.clear()
+        count = 1
+        while count <= int(ConnectionCount):
+            header = "Connection " + str(count)
+            ConnectionIP = Config_Parser.get(header, "ip")
+            ConnectionPort = Config_Parser.get(header, "port")
+            line = "Connection " + \
+                str(count) + ": IP: " + str(ConnectionIP) + \
+                " Port: " + str(ConnectionPort)
+            self.DisplayListWidget.insertItem(count, line)
+            count += 1
+
     def AddConnection(self):
-        ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
+        ConnectionsFilePath = self.ConnectionsFileCheck()
+        Config_Parser.read(ConnectionsFilePath)
         connectionCount = Config_Parser.get("Connection Count", "count")
         UpdatedConnectionCount = int(connectionCount) + 1
         ServerIP = self.ServerIPLineEdit.text()
         ServerPort = self.lineEdit_2.text()
         SectionHeader = 'Connection ' + str(UpdatedConnectionCount)
-
-        Config_Parser.read(ConfigFilePath)
         # Adds a new section to the ini file in accordance to our setup.
         Config_Parser.add_section(SectionHeader)
         Config_Parser.set(SectionHeader, 'ip', ServerIP)
@@ -349,8 +374,8 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         # Updates the count to ensure all the connections get shown everytime you navigate to this page.
         Config_Parser.set('Connection Count', 'count',
                           str(UpdatedConnectionCount))
-        with open(ConfigFilePath, 'w') as configfile:
-            Config_Parser.write(configfile)
+        with open(ConnectionsFilePath, 'w') as connectionsfile:
+            Config_Parser.write(connectionsfile)
 
         line = SectionHeader + ": IP: " + \
             str(ServerIP) + " Port: " + str(ServerPort)
@@ -365,8 +390,9 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         PortValid = self.port_check(ServerPort)
         SelectedRow = self.DisplayListWidget.currentRow() + 1
 
+        ConnectionsFilePath = self.ConnectionsFileCheck()
         Config_Parser = CONFIG_PARSER
-        ConfigFilePath = self.config_check()
+        Config_Parser.read(ConnectionsFilePath)
         ConnectionCount = Config_Parser.get("Connection Count", "count")
 
         if IPValid == True and PortValid == True:
@@ -374,19 +400,10 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                 'Connection ' + str(SelectedRow), 'ip', str(ServerIP))
             Config_Parser.set('Connection ' + str(SelectedRow),
                               'port', str(ServerPort))
-            with open(ConfigFilePath, 'w') as configfile:
-                Config_Parser.write(configfile)
-            self.DisplayListWidget.clear()
-            count = 1
-            while count <= int(ConnectionCount):
-                header = "Connection " + str(count)
-                ConnectionIP = Config_Parser.get(header, "ip")
-                ConnectionPort = Config_Parser.get(header, "port")
-                line = "Connection " + \
-                    str(count) + ": IP: " + str(ConnectionIP) + \
-                    " Port: " + str(ConnectionPort)
-                self.DisplayListWidget.insertItem(count, line)
-                count += 1
+            with open(ConnectionsFilePath, 'w') as connectionsfile:
+                Config_Parser.write(connectionsfile)
+
+            self.UpdateListWidget(Config_Parser, ConnectionCount)
 
     def ip_check(self, IP_Text):
         returnVal = False
