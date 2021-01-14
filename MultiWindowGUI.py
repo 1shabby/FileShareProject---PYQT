@@ -185,7 +185,7 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         Config_Parser.read(ConfigFilePath)
         autoLoad = Config_Parser.get("settings", "auto_connect")
 
-        ConnectionsFilePath = ConnectionsFilePath = os.path.join(
+        ConnectionsFilePath = os.path.join(
             sys.path[0] + "\ini files", 'Connections.ini')
         Config_Parser.read(ConnectionsFilePath)
         connectionCount = Config_Parser.get("Connection Count", "count")
@@ -268,14 +268,18 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
         with open(ConnectionsFilePath, 'w') as connectionsfile:
             Config_Parser.write(connectionsfile)
 
+    def ConnectionCountReduced(self, Connections):
+        Connections += -1
+        return Connections
+
     def RemoveConnection(self):
-        ConfigFilePath = self.config_check()
         Config_Parser = CONFIG_PARSER
+        ConnectionsFilePath = os.path.join(
+            sys.path[0] + "\ini files", 'Connections.ini')
 
         Config_Parser.read(ConnectionsFilePath)
         ConnectionCount = Config_Parser.get("Connection Count", "count")
-        NewConnectionCount = int(ConnectionCount) - 1
-        Config_Parser.read(ConnectionsFilePath)
+        NewConnectionCount = self.ConnectionCountReduced(int(ConnectionCount))
         removeIndex = self.DisplayListWidget.currentRow() + 1
         # Checking to see if we want to remove the last item. If so remove it from the ini file and GUI and done.
         if removeIndex == int(ConnectionCount):
@@ -283,9 +287,9 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
             Config_Parser.remove_section(removeSection)
             self.DisplayListWidget.takeItem(
                 self.DisplayListWidget.currentRow())
-
+            # Decrement count by 1 and write to file.
             Config_Parser.set('Connection Count', 'Count',
-                              str(NewConnectionCount))
+                              NewConnectionCount)
             with open(ConnectionsFilePath, 'w') as connectionsfile:
                 Config_Parser.write(connectionsfile)
         # Checks to see if the index we want to remove is one that is not the last position.
@@ -303,13 +307,12 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                     NextIP = Config_Parser.get(NextSection, 'ip')
                     # Get the port of the connection below the current COnnection in the file.
                     NextPort = Config_Parser.get(NextSection, 'port')
-
                     # Set the current sections ip and port equal to the next sections ip and port
                     Config_Parser.set(CurrentSection, 'ip', NextIP)
                     Config_Parser.set(CurrentSection, 'port', NextPort)
                     # Write the changes to the file.
-                    with open(ConfigFilePath, 'w') as configfile:
-                        Config_Parser.write(configfile)
+                    with open(ConnectionsFilePath, 'w') as connectionsfile:
+                        Config_Parser.write(connectionsfile)
                 # If the next index is equal to the last connection do:
                 elif nextIndex == int(ConnectionCount):
                     NextIP = Config_Parser.get(NextSection, 'ip')
@@ -317,14 +320,15 @@ class Edit_Config_Page(QtWidgets.QMainWindow, EditConfig.Ui_EditConfigWindow):
                     Config_Parser.set(CurrentSection, 'ip', NextIP)
                     Config_Parser.set(CurrentSection, 'port', NextPort)
 
-                    Config_Parser.remove_section('Connection' + str(nextIndex))
-
+                    Config_Parser.remove_section(
+                        'Connection ' + str(nextIndex))
                     Config_Parser.set('Connection Count',
-                                      'Count', str(NewConnectionCount))
-
-                    with open(ConfigFilePath, 'w') as configfile:
-                        Config_Parser.write(configfile)
-
+                                      'count', str(NewConnectionCount))
+                    print("Connection " + str(nextIndex) + " Removed")
+                    with open(ConnectionsFilePath, 'w') as connectionsfile:
+                        Config_Parser.write(connectionsfile)
+                    QMessageBox.about(self,
+                                      "Success", "Connection " + str(removeIndex) + " successfully removed!")
                 currentIndex = currentIndex + 1
                 nextIndex = nextIndex + 1
 
